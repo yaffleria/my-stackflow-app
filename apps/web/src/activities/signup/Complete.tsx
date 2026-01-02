@@ -11,11 +11,12 @@ export const SignupComplete = ({
 }: {
   params: SignupCompleteParams;
 }) => {
-  const { replace } = useFlow();
+  const { pop } = useFlow();
 
   const handleGoHome = () => {
-    // replace로 스택을 완전히 교체하여 뒤로가기 시 가입 플로우로 못 돌아가게 함
-    replace("MainActivity", {});
+    // 스택에서 모든 화면을 pop (MainActivity까지 3개: Complete, Step2, Step1)
+    // Stackflow에서 pop()은 스택 맨 위 화면만 제거하고, 다 제거되면 fallbackActivity로 이동
+    pop(3);
   };
 
   return (
