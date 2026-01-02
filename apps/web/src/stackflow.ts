@@ -2,6 +2,8 @@ import { stackflow } from "@stackflow/react";
 import { basicRendererPlugin } from "@stackflow/plugin-renderer-basic";
 import { basicUIPlugin } from "@stackflow/plugin-basic-ui";
 import { historySyncPlugin } from "@stackflow/plugin-history-sync";
+import { devtoolsPlugin } from "@stackflow/plugin-devtools";
+import { simpleLoggerPlugin } from "./plugins/simpleLoggerPlugin";
 import { MainActivity } from "./activities/MainActivity";
 import { DetailActivity } from "./activities/DetailActivity";
 import { ProfileActivity } from "./activities/ProfileActivity";
@@ -29,5 +31,7 @@ export const { Stack, useFlow } = stackflow({
       },
       fallbackActivity: () => "MainActivity",
     }),
+    devtoolsPlugin(),
+    simpleLoggerPlugin(),
   ],
 });
