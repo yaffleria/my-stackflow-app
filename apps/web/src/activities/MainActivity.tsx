@@ -1,6 +1,7 @@
 import { AppScreen } from "@stackflow/plugin-basic-ui";
 import { useFlow } from "../stackflow";
 import { BottomTabBar } from "../components/BottomTabBar";
+import toast from "react-hot-toast";
 
 export const MainActivity = () => {
   const { push } = useFlow();
@@ -42,6 +43,64 @@ export const MainActivity = () => {
         >
           Open Bottom Sheet
         </button>
+
+        <div style={{ height: "20px" }} />
+
+        <h3>Interactions</h3>
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+          <button
+            onClick={() => window.alert("This is a native alert!")}
+            style={{
+              padding: "8px 16px",
+              borderRadius: "8px",
+              border: "1px solid #ccc",
+              background: "white",
+            }}
+          >
+            Native Alert
+          </button>
+
+          <button
+            onClick={() => {
+              const result = window.confirm("Do you like hybrid apps?");
+              toast(result ? "You said YES! 🎉" : "You said NO... 😢");
+            }}
+            style={{
+              padding: "8px 16px",
+              borderRadius: "8px",
+              border: "1px solid #ccc",
+              background: "white",
+            }}
+          >
+            Native Confirm
+          </button>
+
+          <button
+            onClick={() => toast.success("Successfully saved!")}
+            style={{
+              padding: "8px 16px",
+              borderRadius: "8px",
+              border: "none",
+              background: "#e0f7fa",
+              color: "#006064",
+            }}
+          >
+            Toast Success
+          </button>
+
+          <button
+            onClick={() => toast.error("Something went wrong.")}
+            style={{
+              padding: "8px 16px",
+              borderRadius: "8px",
+              border: "none",
+              background: "#ffebee",
+              color: "#c62828",
+            }}
+          >
+            Toast Error
+          </button>
+        </div>
       </div>
       <BottomTabBar currentTab="Home" />
     </AppScreen>
