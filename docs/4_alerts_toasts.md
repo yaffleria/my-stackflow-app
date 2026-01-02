@@ -17,6 +17,61 @@
    - `Toaster`를 `App.tsx` 최상위(`Stack` 형제 요소)에 배치하여 모든 화면 위에 뜨도록 설정
    - 성공/실패 등 상태에 따른 시각적 피드백 제공
 
+## 내부 동작 원리
+
+### Toaster 배치가 중요한 이유
+
+**잘못된 배치 (Activity 내부):**
+
+```tsx
+// ❌ MainActivity.tsx
+<AppScreen>
+  <Toaster /> {/* 화면 전환 시 함께 사라짐 */}
+  ...
+</AppScreen>
+```
+
+문제: `push()`로 다른 화면으로 이동하면 Toaster도 숨겨짐.
+
+**올바른 배치 (Stack 바깥):**
+
+```tsx
+// ✅ App.tsx
+<>
+  <Stack />
+  <Toaster position="bottom-center" /> {/* 항상 최상위에 떠있음 */}
+</>
+```
+
+장점: 어떤 화면에서든 toast를 호출하면 동일하게 표시됨.
+
+### DOM 구조
+
+```html
+<div id="root">
+  <div id="stackflow">
+    <div class="activity">MainActivity</div>
+    <div class="activity">DetailActivity</div>
+  </div>
+  <div class="toaster">
+    <!-- Stack 바깥, z-index가 높음 -->
+    <div class="toast">성공!</div>
+  </div>
+</div>
+```
+
+### WebView에서 window.alert()가 네이티브로 보이는 이유
+
+```
+Web (JavaScript)          Native (React Native WebView)
+─────────────────         ───────────────────────────────
+window.alert("Hi")   →    WebView가 가로채서 네이티브 Alert 표시
+                          (iOS: UIAlertController, Android: AlertDialog)
+```
+
+WebView는 `alert()`, `confirm()`, `prompt()`를 기본적으로 네이티브 다이얼로그로 변환합니다.
+별도 브릿지 코드 없이도 네이티브 느낌을 줄 수 있는 이유입니다.
+
 ## 배운 점
 
 - **레이어 관리**: Toast 같은 오버레이 요소는 Stackflow(`Stack`) 바깥에 두어야 화면 전환과 무관하게 유지됨.
