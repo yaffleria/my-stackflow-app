@@ -23,6 +23,24 @@ export const MainActivity = () => {
         >
           Go to Detail
         </button>
+
+        <div style={{ height: "10px" }} />
+
+        <button
+          onClick={() => push("MyBottomSheet", { title: "Hello from Main" })}
+          style={{
+            padding: "10px 20px",
+            fontSize: "16px",
+            backgroundColor: "#28a745",
+            color: "white",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+            width: "100%",
+          }}
+        >
+          Open Bottom Sheet
+        </button>
       </div>
     </AppScreen>
   );

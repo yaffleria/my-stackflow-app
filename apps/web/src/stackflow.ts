@@ -4,12 +4,14 @@ import { basicUIPlugin } from "@stackflow/plugin-basic-ui";
 import { historySyncPlugin } from "@stackflow/plugin-history-sync";
 import { MainActivity } from "./activities/MainActivity";
 import { DetailActivity } from "./activities/DetailActivity";
+import { MyBottomSheet } from "./activities/MyBottomSheet";
 
 export const { Stack, useFlow } = stackflow({
   transitionDuration: 350,
   activities: {
     MainActivity,
     DetailActivity,
+    MyBottomSheet,
   },
   plugins: [
     basicRendererPlugin(),
@@ -20,6 +22,7 @@ export const { Stack, useFlow } = stackflow({
       routes: {
         MainActivity: "/",
         DetailActivity: "/detail",
+        MyBottomSheet: "/sheet",
       },
       fallbackActivity: () => "MainActivity",
     }),
