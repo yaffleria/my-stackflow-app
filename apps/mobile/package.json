@@ -10,14 +10,14 @@
   },
   "dependencies": {
     "expo": "~54.0.30",
+    "expo-notifications": "*",
     "expo-status-bar": "~3.0.9",
     "react": "19.1.0",
     "react-native": "0.81.5",
-    "react-native-webview": "*",
-    "expo-notifications": "*"
+    "react-native-webview": "*"
   },
   "devDependencies": {
-    "@types/react": "~19.1.0",
+    "@types/react": "~18.3.27",
     "typescript": "~5.9.2"
   },
   "private": true

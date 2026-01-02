@@ -1,4 +1,4 @@
-import { AppScreen } from "@stackflow/plugin-renderer-basic";
+import { AppScreen } from "@stackflow/plugin-basic-ui";
 import { useFlow } from "../stackflow";
 
 export const MainActivity = () => {

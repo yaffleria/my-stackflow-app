@@ -1,4 +1,4 @@
-import "@stackflow/plugin-renderer-basic/index.css";
+import "@stackflow/plugin-basic-ui/index.css";
 import { Stack } from "./stackflow";
 
 const App = () => {
