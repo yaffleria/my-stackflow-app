@@ -101,6 +101,26 @@ export const MainActivity = () => {
             Toast Error
           </button>
         </div>
+
+        <div style={{ height: "20px" }} />
+
+        <h3>Funnel Demo</h3>
+        <button
+          onClick={() => push("SignupStep1", {})}
+          style={{
+            width: "100%",
+            padding: "14px",
+            fontSize: "16px",
+            fontWeight: "bold",
+            backgroundColor: "#9c27b0",
+            color: "white",
+            border: "none",
+            borderRadius: "8px",
+            cursor: "pointer",
+          }}
+        >
+          회원가입 시작 →
+        </button>
       </div>
       <BottomTabBar currentTab="Home" />
     </AppScreen>

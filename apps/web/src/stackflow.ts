@@ -7,6 +7,9 @@ import { MainActivity } from "./activities/MainActivity";
 import { DetailActivity } from "./activities/DetailActivity";
 import { ProfileActivity } from "./activities/ProfileActivity";
 import { MyBottomSheet } from "./activities/MyBottomSheet";
+import { SignupStep1 } from "./activities/SignupStep1";
+import { SignupStep2 } from "./activities/SignupStep2";
+import { SignupComplete } from "./activities/SignupComplete";
 
 export const { Stack, useFlow } = stackflow({
   transitionDuration: 350,
@@ -15,6 +18,9 @@ export const { Stack, useFlow } = stackflow({
     DetailActivity,
     MyBottomSheet,
     ProfileActivity,
+    SignupStep1,
+    SignupStep2,
+    SignupComplete,
   },
   plugins: [
     basicRendererPlugin(),
@@ -27,6 +33,9 @@ export const { Stack, useFlow } = stackflow({
         DetailActivity: "/detail",
         MyBottomSheet: "/sheet",
         ProfileActivity: "/profile",
+        SignupStep1: "/signup/step1",
+        SignupStep2: "/signup/step2",
+        SignupComplete: "/signup/complete",
       },
       fallbackActivity: () => "MainActivity",
     }),
