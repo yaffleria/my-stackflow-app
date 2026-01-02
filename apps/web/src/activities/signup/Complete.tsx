@@ -19,7 +19,15 @@ export const SignupComplete = ({
   };
 
   return (
-    <AppScreen appBar={{ title: "회원가입 완료" }}>
+    <AppScreen
+      appBar={{
+        title: "회원가입 완료",
+        backButton: {
+          render: () => null, // 뒤로가기 버튼 숨김
+        },
+      }}
+      preventSwipeBack // iOS 스와이프 백 제스처 방지
+    >
       <div style={{ padding: "20px", textAlign: "center" }}>
         <div style={{ fontSize: "64px", marginBottom: "20px" }}>🎉</div>
         <h2 style={{ marginBottom: "8px" }}>가입 완료!</h2>
