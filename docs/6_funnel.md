@@ -18,8 +18,14 @@
    - `push("SignupStep2", { email })` 형태로 다음 단계에 데이터 전달
    - Activity 컴포넌트에서 `{ params }` props로 수신
 
-3. **완료 후 처리**:
-   - `replace("MainActivity", {})`로 스택을 교체하여 뒤로 가기 시 가입 플로우로 돌아가지 않도록 처리
+3. **유효성 검사**:
+
+   - `zod` + `react-hook-form` 조합 사용
+   - 스키마 정의 → 폼 연결 → 에러 표시 구조
+
+4. **완료 후 처리**:
+   - `pop(3)`으로 스택의 모든 화면(Complete, Step2, Step1) 제거
+   - fallbackActivity로 MainActivity 표시
 
 ## 내부 동작 원리
 
@@ -41,13 +47,26 @@
 </div>
 ```
 
-### 뒤로 가기 시 상태가 유지되는 이유
+### push()와 pop()의 마운트/언마운트 동작
 
-| 일반 라우터                          | Stackflow                            |
-| ------------------------------------ | ------------------------------------ |
-| 뒤로가기 → 이전 컴포넌트 새로 마운트 | 뒤로가기 → 숨겨진 컴포넌트 다시 표시 |
-| `useState` 초기화됨                  | `useState` 값 그대로                 |
-| 전역 상태관리 필요                   | 추가 라이브러리 불필요               |
+| 동작                            | Step1             | Step2           | 결과                         |
+| ------------------------------- | ----------------- | --------------- | ---------------------------- |
+| Step1 → **push** → Step2        | DOM에 유지 (숨김) | 새로 마운트     | Step2가 스택 위에 쌓임       |
+| Step2 → **pop** → Step1         | DOM에 유지 (보임) | **언마운트**    | Step2가 DOM에서 제거됨       |
+| Step1 → **push** → Step2 (다시) | DOM에 유지        | **새로 마운트** | 새 인스턴스, useState 초기화 |
+
+### 상태 유지 여부 정리
+
+| 시나리오                | Step1 이메일       | Step2 비밀번호        |
+| ----------------------- | ------------------ | --------------------- |
+| Step1 → Step2 진입      | 유지 (숨겨진 상태) | 빈 값 (새 마운트)     |
+| Step2 → Step1 뒤로가기  | **유지됨**         | 언마운트로 사라짐     |
+| Step1 → Step2 다시 진입 | 유지됨             | **빈 값** (새 마운트) |
+
+**결론**:
+
+- **뒤로 가면** → 현재 화면 pop (언마운트) → 상태 초기화
+- **앞에 있던 화면** → 그대로 유지 → 상태 유지
 
 ### 데이터 흐름 다이어그램
 
@@ -66,9 +85,9 @@ Step2 (password 입력)                            params.email 수신
   ▼
 Complete (완료)
   │
-  │  replace("MainActivity", {})  ← 스택 전체 교체 (뒤로가기 방지)
+  │  pop(3)  ← 스택에서 3개 화면 모두 제거
   ▼
-MainActivity
+MainActivity (fallbackActivity)
 ```
 
 ### 왜 Zustand 같은 상태관리가 필요 없는가?
@@ -82,18 +101,43 @@ MainActivity
 - 복잡한 전역 상태가 필요할 때
 - 이 경우 Zustand, Jotai 등 사용 (Stackflow와 무관)
 
-### replace() vs pop()
+## 디버깅 기록
 
-**Complete에서 홈으로 갈 때:**
+### 문제 1: Complete에서 홈으로 이동 후 뒤로가기 버튼 표시
+
+**증상**: Complete에서 `replace("MainActivity")`로 홈 이동 후, MainActivity에 뒤로가기 버튼이 생기고 누르면 Step2로 이동함.
+
+**원인**: `replace()`는 현재 화면만 교체하고, 스택 아래의 화면(Step1, Step2)은 그대로 남아있음.
+
+```
+Before replace:
+[MainActivity] → [Step1] → [Step2] → [Complete]
+
+After replace("MainActivity"):
+[MainActivity] → [Step1] → [Step2] → [MainActivity(새)]  ← 스택 깊이 4
+```
+
+**해결**: `pop(3)` 사용하여 스택에서 Complete, Step2, Step1 모두 제거.
 
 ```tsx
-// ❌ pop() 사용 시
-pop(); // Step2로 돌아감
-pop(); // Step1으로 돌아감
-pop(); // 그제야 MainActivity...
+// Complete.tsx
+const handleGoHome = () => {
+  pop(3); // 3개 화면 제거 → fallbackActivity로 MainActivity 표시
+};
+```
 
-// ✅ replace() 사용 시
-replace("MainActivity", {}); // 스택 전체를 MainActivity로 교체
+### 문제 2: Complete에서 스와이프로 뒤로가기 가능
+
+**해결**: `AppScreen`에 `preventSwipeBack` prop 추가 + 뒤로가기 버튼 숨김
+
+```tsx
+<AppScreen
+  appBar={{
+    title: "회원가입 완료",
+    backButton: { render: () => null },  // 버튼 숨김
+  }}
+  preventSwipeBack  // 스와이프 제스처 방지
+>
 ```
 
 ## 핵심 코드
@@ -105,12 +149,40 @@ push("SignupStep2", { email });
 // Step2에서 Complete로 이동
 push("SignupComplete", { email: params.email, password });
 
-// Complete에서 홈으로 (스택 교체)
-replace("MainActivity", {});
+// Complete에서 홈으로 (스택 전체 제거)
+pop(3);
+```
+
+## 유효성 검사 (zod + react-hook-form)
+
+```tsx
+// 스키마 정의
+const emailSchema = z.object({
+  email: z
+    .string()
+    .min(1, "이메일을 입력해주세요.")
+    .email("올바른 이메일 형식이 아닙니다."),
+});
+
+// 폼 연결
+const {
+  register,
+  handleSubmit,
+  formState: { errors },
+} = useForm({
+  resolver: zodResolver(emailSchema),
+});
+
+// 에러 표시
+{
+  errors.email && <p style={{ color: "red" }}>{errors.email.message}</p>;
+}
 ```
 
 ## 배운 점
 
 - **스택 유지**: `push`로 화면을 쌓으면 이전 화면의 상태(`useState`)가 그대로 유지됨.
-- **Params vs 상태관리 라이브러리**: WebView 앱 환경에서는 URL 노출 걱정이 없어 Params 방식이 간편함.
-- **replace의 활용**: 완료 후 스택을 완전히 교체하여 사용자 경험 개선.
+- **pop은 언마운트**: 뒤로가기(pop)된 화면은 DOM에서 제거되어 상태가 초기화됨.
+- **replace의 한계**: `replace()`는 현재 화면만 교체하며, 스택 아래는 유지됨.
+- **pop(n)**: 여러 화면을 한 번에 제거할 때 유용.
+- **preventSwipeBack**: iOS 스와이프 뒤로가기 방지에 필수.
