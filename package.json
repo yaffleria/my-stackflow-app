@@ -3,6 +3,10 @@
   "private": true,
   "scripts": {
     "dev": "pnpm -r dev",
+    "web": "pnpm --filter web-app dev",
+    "mobile": "pnpm --filter mobile start",
+    "android": "pnpm --filter mobile android",
+    "ios": "pnpm --filter mobile ios",
     "build": "pnpm -r build",
     "test": "pnpm -r test"
   },
