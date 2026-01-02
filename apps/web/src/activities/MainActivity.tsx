@@ -12,7 +12,7 @@ export const MainActivity = () => {
         <h2>Hello Stackflow!</h2>
         <p>This is a hybrid app using Stackflow + React Native (Expo).</p>
         <button
-          onClick={() => push("DetailActivity", {})}
+          onClick={() => push("DetailActivity", { articleId: "42" })}
           style={{
             padding: "10px 20px",
             fontSize: "16px",

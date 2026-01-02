@@ -13,6 +13,7 @@
     "@stackflow/plugin-basic-ui": "^1.18.1",
     "@stackflow/plugin-devtools": "^0.1.11",
     "@stackflow/plugin-history-sync": "^1.0.0",
+    "@stackflow/plugin-preload": "^1.4.4",
     "@stackflow/plugin-renderer-basic": "^1.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
