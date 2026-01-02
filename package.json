@@ -4,9 +4,9 @@
   "scripts": {
     "dev": "pnpm -r dev",
     "web": "pnpm --filter web-app dev",
-    "mobile": "pnpm --filter mobile start",
-    "android": "pnpm --filter mobile android",
-    "ios": "pnpm --filter mobile ios",
+    "native": "pnpm --filter native start",
+    "android": "pnpm --filter native android",
+    "ios": "pnpm --filter native ios",
     "build": "pnpm -r build",
     "test": "pnpm -r test"
   },
