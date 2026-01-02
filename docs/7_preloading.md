@@ -2,22 +2,21 @@
 
 ## 목표
 
-- 화면 전환 애니메이션이 실행되는 동안 데이터를 미리 가져온다.
-- 화면이 뜨자마자 로딩 없이 데이터가 표시되도록 한다.
+- 화면 전환과 동시에 데이터를 비동기로 가져온다.
+- 화면 도착 시 데이터가 준비되어 있으면 바로 표시, 아니면 스켈레톤 UI 표시.
 
 ## 구현 내용
 
-1. **패키지 설치**:
+1. **TanStack Query 설치**:
 
-   - `pnpm --filter web-app add @stackflow/plugin-preload`
+   - `pnpm --filter web-app add @tanstack/react-query`
 
-2. **preloadPlugin 설정**:
+2. **QueryClientProvider 설정**:
 
-   - `stackflow.ts`에서 각 Activity별 `loader` 함수 정의
-   - loader는 `activityParams`를 받아 데이터를 미리 가져옴
+   - `App.tsx`에서 전역으로 `QueryClientProvider` 감싸기
 
-3. **컴포넌트에서 데이터 사용**:
-   - `useActivityPreloadRef` 훅으로 preload된 데이터 참조 획득
+3. **useSuspenseQuery 사용**:
+   - `DetailActivity`에서 `useSuspenseQuery` 훅으로 데이터 fetching
    - React `Suspense`와 함께 사용하여 로딩 UI 처리
 
 ## 내부 동작 원리
@@ -29,103 +28,123 @@
 │
 ├─ push("DetailActivity", { articleId: "42" })
 │
-├─ [동시에 시작]
-│   ├─ 화면 전환 애니메이션 (350ms)
-│   └─ loader 실행: fetchArticleData("42")
+├─ 화면 전환 애니메이션 시작 (350ms)
 │
-└─ 애니메이션 완료 시점
-    ├─ 데이터 이미 도착 → 바로 표시
-    └─ 데이터 아직 로딩 중 → Suspense fallback 표시
+└─ 애니메이션 완료 → 컴포넌트 렌더링 시작
+    │
+    ├─ useSuspenseQuery 실행 → fetch 시작
+    ├─ Suspense가 Promise 감지 → 스켈레톤 표시
+    │
+    └─ fetch 완료 → 실제 데이터 표시
 ```
 
-### 일반적인 방식 vs Preloading
+### 일반 useEffect vs useSuspenseQuery
 
-**일반적인 방식 (useEffect):**
-
-```
-버튼 클릭 → 애니메이션 시작 → 애니메이션 끝 → useEffect 실행 → fetch → 로딩 → 데이터 표시
-[    350ms    ] [   wait   ] [  500ms  ] = 총 850ms+
-```
-
-**Preloading 방식:**
-
-```
-버튼 클릭 → 애니메이션 시작 + fetch 동시 → 애니메이션 끝 → 데이터 이미 있음!
-[    350ms + fetch 500ms 병렬    ] = 총 500ms (체감 350ms)
-```
-
-### PreloadRef 패턴 (Suspense 연동)
+**useEffect 방식:**
 
 ```tsx
-// loader에서 반환
-function createPreloadRef<T>(fetchFn: () => Promise<T>): PreloadRef<T> {
-  let data: T | null = null;
-  let promise: Promise<T> | null = null;
+const [data, setData] = useState(null);
+const [loading, setLoading] = useState(true);
 
-  return {
-    read: () => {
-      if (data) return data; // 데이터 있으면 반환
-      if (!promise) promise = fetchFn(); // 없으면 fetch 시작
-      throw promise; // Suspense가 잡아서 대기
-    },
-  };
-}
+useEffect(() => {
+  fetchData()
+    .then(setData)
+    .finally(() => setLoading(false));
+}, []);
 
-// 컴포넌트에서 사용
-const ArticleContent = () => {
-  const preloadRef = useActivityPreloadRef<PreloadRef<ArticleData>>();
-  const data = preloadRef.read(); // Suspense 경계에서 사용
-  return <div>{data.title}</div>;
+if (loading) return <Skeleton />;
+return <Content data={data} />;
+```
+
+**useSuspenseQuery 방식 (권장):**
+
+```tsx
+// 부모에서 Suspense로 감싸기
+<Suspense fallback={<Skeleton />}>
+  <Content articleId={id} />
+</Suspense>;
+
+// 자식 컴포넌트
+const Content = ({ articleId }) => {
+  const { data } = useSuspenseQuery({
+    queryKey: ["article", articleId],
+    queryFn: () => fetchArticle(articleId),
+  });
+  return <div>{data.title}</div>; // 데이터 보장됨
 };
 ```
 
-### 왜 throw promise인가?
+### TanStack Query의 장점
 
-React Suspense의 동작 방식:
+| 기능                | 설명                                      |
+| ------------------- | ----------------------------------------- |
+| **캐싱**            | 동일한 queryKey는 재요청 없이 캐시 사용   |
+| **staleTime**       | 설정 시간 동안 fresh 상태로 유지          |
+| **자동 재시도**     | 실패 시 자동으로 재시도                   |
+| **백그라운드 갱신** | 오래된 데이터는 백그라운드에서 갱신       |
+| **Suspense 지원**   | `useSuspenseQuery`로 자연스러운 로딩 처리 |
 
-1. 컴포넌트가 Promise를 throw하면 Suspense가 이를 잡음
-2. fallback UI 표시
-3. Promise가 resolve되면 컴포넌트 다시 렌더링
-4. 이번엔 데이터가 있으므로 정상 반환
+### 파일 구조
+
+```
+src/
+├── App.tsx              ← QueryClientProvider 설정
+├── stackflow.ts         ← 핵심 네비게이션 설정 (깔끔하게 유지)
+├── mock/
+│   └── article.ts       ← Mock 데이터 & fetch 함수
+└── activities/
+    └── DetailActivity.tsx  ← useSuspenseQuery 사용
+```
 
 ## 핵심 코드
 
-### stackflow.ts
+### App.tsx
 
 ```tsx
-preloadPlugin({
-  loaders: {
-    DetailActivity({ activityParams }) {
-      const articleId = activityParams.articleId || "1";
-      return createPreloadRef(() => fetchArticleData(articleId));
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5분간 fresh 상태
+      retry: 1,
     },
   },
-}),
+});
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <Stack />
+  </QueryClientProvider>
+);
 ```
 
 ### DetailActivity.tsx
 
 ```tsx
-export const DetailActivity = () => {
-  return (
-    <AppScreen appBar={{ title: "Article Detail" }}>
-      <Suspense fallback={<ArticleSkeleton />}>
-        <ArticleContent />
-      </Suspense>
-    </AppScreen>
-  );
-};
+import { useSuspenseQuery } from "@tanstack/react-query";
 
-const ArticleContent = () => {
-  const preloadRef = useActivityPreloadRef<PreloadRef<ArticleData>>();
-  const data = preloadRef.read();
+const ArticleContent = ({ articleId }: { articleId: string }) => {
+  const { data } = useSuspenseQuery<ArticleData>({
+    queryKey: ["article", articleId],
+    queryFn: () => fetchArticleData(articleId),
+  });
+
   return <h2>{data.title}</h2>;
 };
+
+export const DetailActivity = ({ params }) => (
+  <AppScreen appBar={{ title: "Article Detail" }}>
+    <Suspense fallback={<ArticleSkeleton />}>
+      <ArticleContent articleId={params.articleId} />
+    </Suspense>
+  </AppScreen>
+);
 ```
 
 ## 배운 점
 
-- **병렬 처리**: 애니메이션과 데이터 fetching을 동시에 실행하여 체감 로딩 시간 단축.
-- **Suspense 패턴**: `throw promise` 패턴으로 React Suspense와 자연스럽게 연동.
-- **loader 함수**: 각 Activity별로 필요한 데이터를 정의할 수 있어 관심사 분리.
-- **스켈레톤 UI**: 데이터 로딩 중에도 레이아웃이 유지되어 CLS(Cumulative Layout Shift) 방지.
+- **TanStack Query + Suspense**: 로딩 상태를 선언적으로 처리할 수 있음.
+- **useSuspenseQuery**: 데이터가 반드시 존재함을 보장 (타입 안전).
+- **캐싱**: 동일한 글을 다시 열면 즉시 표시 (네트워크 요청 없음).
+- **관심사 분리**: Mock 데이터는 `mock/` 폴더, UI는 `activities/` 폴더.

@@ -1,12 +1,21 @@
 import { AppScreen } from "@stackflow/plugin-basic-ui";
-import { useFlow, useActivityPreloadRef } from "../stackflow";
-import { PreloadRef, ArticleData } from "../preload";
+import { useFlow } from "../stackflow";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { fetchArticleData, ArticleData } from "../mock/article";
 import { Suspense } from "react";
+import { ActivityComponentType } from "@stackflow/react";
+
+// params 타입 정의
+type DetailActivityParams = {
+  articleId: string;
+};
 
 // 데이터를 표시하는 내부 컴포넌트
-const ArticleContent = () => {
-  const preloadRef = useActivityPreloadRef<PreloadRef<ArticleData>>();
-  const data = preloadRef.read();
+const ArticleContent = ({ articleId }: { articleId: string }) => {
+  const { data } = useSuspenseQuery<ArticleData>({
+    queryKey: ["article", articleId],
+    queryFn: () => fetchArticleData(articleId),
+  });
 
   return (
     <div>
@@ -29,6 +38,7 @@ const ArticleSkeleton = () => (
         backgroundColor: "#e0e0e0",
         borderRadius: "4px",
         marginBottom: "16px",
+        animation: "pulse 1.5s ease-in-out infinite",
       }}
     />
     <div
@@ -50,14 +60,17 @@ const ArticleSkeleton = () => (
   </div>
 );
 
-export const DetailActivity = () => {
+export const DetailActivity: ActivityComponentType<DetailActivityParams> = ({
+  params,
+}) => {
   const { pop } = useFlow();
+  const articleId = params.articleId || "1";
 
   return (
     <AppScreen appBar={{ title: "Article Detail" }}>
       <div style={{ padding: "16px" }}>
         <Suspense fallback={<ArticleSkeleton />}>
-          <ArticleContent />
+          <ArticleContent articleId={articleId} />
         </Suspense>
 
         <button
