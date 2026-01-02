@@ -1,32 +1,36 @@
 import { useState } from "react";
 import { AppScreen } from "@stackflow/plugin-basic-ui";
-import { useFlow } from "../stackflow";
+import { useFlow } from "../../stackflow";
 
-export const SignupStep1 = () => {
+interface SignupStep2Params {
+  email: string;
+}
+
+export const SignupStep2 = ({ params }: { params: SignupStep2Params }) => {
   const { push } = useFlow();
-  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleNext = () => {
-    if (!email.trim()) {
-      alert("이메일을 입력해주세요.");
+    if (password.length < 4) {
+      alert("비밀번호는 4자 이상이어야 합니다.");
       return;
     }
-    push("SignupStep2", { email });
+    push("SignupComplete", { email: params.email, password });
   };
 
   return (
-    <AppScreen appBar={{ title: "회원가입 (1/3)" }}>
+    <AppScreen appBar={{ title: "회원가입 (2/3)" }}>
       <div style={{ padding: "20px" }}>
-        <h2 style={{ marginBottom: "8px" }}>이메일 입력</h2>
+        <h2 style={{ marginBottom: "8px" }}>비밀번호 입력</h2>
         <p style={{ color: "#666", marginBottom: "24px" }}>
-          사용하실 이메일 주소를 입력해주세요.
+          <strong>{params.email}</strong> 계정의 비밀번호를 설정해주세요.
         </p>
 
         <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="example@email.com"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="비밀번호 (4자 이상)"
           style={{
             width: "100%",
             padding: "14px",
@@ -52,7 +56,7 @@ export const SignupStep1 = () => {
             cursor: "pointer",
           }}
         >
-          다음
+          완료
         </button>
       </div>
     </AppScreen>

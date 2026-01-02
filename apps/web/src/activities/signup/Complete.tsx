@@ -1,5 +1,5 @@
 import { AppScreen } from "@stackflow/plugin-basic-ui";
-import { useFlow } from "../stackflow";
+import { useFlow } from "../../stackflow";
 
 interface SignupCompleteParams {
   email: string;

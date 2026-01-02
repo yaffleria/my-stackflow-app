@@ -7,9 +7,9 @@ import { MainActivity } from "./activities/MainActivity";
 import { DetailActivity } from "./activities/DetailActivity";
 import { ProfileActivity } from "./activities/ProfileActivity";
 import { MyBottomSheet } from "./activities/MyBottomSheet";
-import { SignupStep1 } from "./activities/SignupStep1";
-import { SignupStep2 } from "./activities/SignupStep2";
-import { SignupComplete } from "./activities/SignupComplete";
+import { SignupStep1 } from "./activities/signup/Step1";
+import { SignupStep2 } from "./activities/signup/Step2";
+import { SignupComplete } from "./activities/signup/Complete";
 
 export const { Stack, useFlow } = stackflow({
   transitionDuration: 350,
