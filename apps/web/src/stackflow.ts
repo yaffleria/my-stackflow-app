@@ -4,6 +4,7 @@ import { basicUIPlugin } from "@stackflow/plugin-basic-ui";
 import { historySyncPlugin } from "@stackflow/plugin-history-sync";
 import { MainActivity } from "./activities/MainActivity";
 import { DetailActivity } from "./activities/DetailActivity";
+import { ProfileActivity } from "./activities/ProfileActivity";
 import { MyBottomSheet } from "./activities/MyBottomSheet";
 
 export const { Stack, useFlow } = stackflow({
@@ -12,6 +13,7 @@ export const { Stack, useFlow } = stackflow({
     MainActivity,
     DetailActivity,
     MyBottomSheet,
+    ProfileActivity,
   },
   plugins: [
     basicRendererPlugin(),
@@ -23,6 +25,7 @@ export const { Stack, useFlow } = stackflow({
         MainActivity: "/",
         DetailActivity: "/detail",
         MyBottomSheet: "/sheet",
+        ProfileActivity: "/profile",
       },
       fallbackActivity: () => "MainActivity",
     }),

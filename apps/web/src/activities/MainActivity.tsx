@@ -1,12 +1,13 @@
 import { AppScreen } from "@stackflow/plugin-basic-ui";
 import { useFlow } from "../stackflow";
+import { BottomTabBar } from "../components/BottomTabBar";
 
 export const MainActivity = () => {
   const { push } = useFlow();
 
   return (
     <AppScreen appBar={{ title: "Main Activity" }}>
-      <div style={{ padding: "16px" }}>
+      <div style={{ padding: "16px", paddingBottom: "80px" }}>
         <h2>Hello Stackflow!</h2>
         <p>This is a hybrid app using Stackflow + React Native (Expo).</p>
         <button
@@ -42,6 +43,7 @@ export const MainActivity = () => {
           Open Bottom Sheet
         </button>
       </div>
+      <BottomTabBar currentTab="Home" />
     </AppScreen>
   );
 };
