@@ -1,10 +1,6 @@
 import { AppScreen } from "@stackflow/plugin-basic-ui";
-import {
-  useFlow,
-  useActivityPreloadRef,
-  PreloadRef,
-  ArticleData,
-} from "../stackflow";
+import { useFlow, useActivityPreloadRef } from "../stackflow";
+import { PreloadRef, ArticleData } from "../preload";
 import { Suspense } from "react";
 
 // 데이터를 표시하는 내부 컴포넌트
